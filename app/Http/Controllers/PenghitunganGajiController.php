@@ -22,21 +22,33 @@ class PenghitunganGajiController extends Controller
 
     public function store(Request $request)
     {
-        dd($request->all());
-
         $request->validate([
             'periode' => 'required|string',
             'tanggal' => 'required|date',
-            'kode_nik' => 'required|string',
-            'jumlah_hadir' => 'required|integer',
-            'gaji_pokok' => 'required|numeric',
-            'insentif' => 'required|numeric',
-            'pot_asuransi' => 'required|numeric',
-            'total_gaji' => 'required|numeric',
+            'kode_nik.*' => 'required|string',
+            'jumlah_hadir.*' => 'required|integer',
+            'gaji_pokok.*' => 'required|numeric',
+            'insentif.*' => 'required|numeric',
+            'asuransi.*' => 'required|numeric',
+            'totalgaji.*' => 'required|numeric',
         ]);
 
+        // Ambil data dari request
+        $data = $request->all();
 
-        PenghitunganGaji::create($request->all());
+        // Loop untuk membuat entri PenghitunganGaji untuk setiap baris yang disubmit
+        foreach ($data['kode_nik'] as $key => $value) {
+            PenghitunganGaji::create([
+                'periode' => $data['periode'],
+                'tanggal' => $data['tanggal'],
+                'kode_nik' => $data['kode_nik'][$key],
+                'jumlah_hadir' => $data['jumlah_hadir'][$key],
+                'gaji_pokok' => $data['gaji_pokok'][$key],
+                'insentif' => $data['insentif'][$key],
+                'pot_asuransi' => $data['asuransi'][$key],
+                'total_gaji' => $data['totalgaji'][$key],
+            ]);
+        }
 
         return redirect()->route('penghitungan_gaji.index')
                          ->with('success', 'Penghitungan gaji berhasil disimpan.');

@@ -86,7 +86,7 @@
                                                                     </div>
                                                                     <div class="col-md-4">
                                                                         <div class="form-group{{ $errors->has('tanggal') ? ' has-danger' : '' }}">
-                                                                            <label for="peroide" class="col-form-label text-left">Tanggal Input :</label>
+                                                                            <label for="tanggal" class="col-form-label text-left">Tanggal Input :</label>
                                                                             <input type="date" name="tanggal" id="input-tanggal" class="form-control{{ $errors->has('tanggal') ? ' is-invalid' : '' }}" placeholder="{{ __('Tanggal') }}" value="{{ old('tanggal') }}" required>
                                                                             @include('alerts.feedback', ['field' => 'tanggal'])
                                                                         </div>
@@ -110,25 +110,19 @@
                                                                             <tbody id="barang-container">
                                                                                 <tr>
                                                                                     <td>
-                                                                                        <select class="form-control" name="nik[]" id="nik">
+                                                                                        <select class="form-control" name="kode_nik[]" id="nik">
                                                                                             <option value="">Pilih NIK</option>
                                                                                             @foreach ($karyawans as $karyawan)
                                                                                                 <option value="{{ $karyawan->kode_nik }}">{{ $karyawan->kode_nik }}</option>
                                                                                             @endforeach
                                                                                         </select>
                                                                                     </td>
-                                                                                    <td><input type="text" class="form-control" name="nama_lengkap[]"
-                                                                                        id="nama_lengkap1" placeholder="Nama Lengkap" readonly></td>
-                                                                                    <td><input type="text" class="form-control" name="jumlah_hadir[]"
-                                                                                            id="jumlah_hadir" placeholder="Jumlah Hadir"></td>
-                                                                                    <td><input type="number" class="form-control" name="gaji_pokok[]"
-                                                                                            id="gaji_pokok1" style="width: 100px;" placeholder="Gaji Pokok" readonly></td>
-                                                                                    <td><input type="number" class="form-control" name="insentif[]"
-                                                                                            id="insentif1" style="width: 100px;" placeholder="Insentif" readonly></td>
-                                                                                    <td><input type="number" class="form-control" name="asuransi[]"
-                                                                                            id="asuransi1" style="width: 100px;" placeholder="Asuransi"></td>
-                                                                                    <td><input type="number" class="form-control" name="totalgaji[]"
-                                                                                            id="totalgaji1" style="width: 100px;" placeholder="Total Gaji" readonly></td>
+                                                                                    <td><input type="text" class="form-control nama-lengkap" name="nama_lengkap[]" placeholder="Nama Lengkap" readonly></td>
+                                                                                    <td><input type="text" class="form-control jumlah-hadir" name="jumlah_hadir[]" placeholder="Jumlah Hadir"></td>
+                                                                                    <td><input type="number" class="form-control gaji-pokok" name="gaji_pokok[]" style="width: 100px;" placeholder="Gaji Pokok" readonly></td>
+                                                                                    <td><input type="number" class="form-control insentif" name="insentif[]" style="width: 100px;" placeholder="Insentif" readonly></td>
+                                                                                    <td><input type="number" class="form-control asuransi" name="asuransi[]" style="width: 100px;" placeholder="Asuransi"></td>
+                                                                                    <td><input type="number" class="form-control total-gaji" name="totalgaji[]" style="width: 100px;" placeholder="Total Gaji" readonly></td>
                                                                                 </tr>
                                                                             </tbody>
                                                                         </table>
@@ -163,99 +157,88 @@
 
 @push('js')
     <script type="text/javascript">
-        $(document).ready(function() {
-            // Fungsi untuk mengisi otomatis nama, gaji pokok, dan insentif
-            $('#nik').change(function(){
-                var kode_nik = $(this).val();
-                if(kode_nik !== '') {
-                    $.ajax({
-                        url:"{{ route('get-karyawan-detail') }}",
-                        method:"GET",
-                        data:{kode_nik:kode_nik},
-                        success:function(response) {
-                            if(response) {
-                                console.log(response);
-                                $('#nama_lengkap1').val(response.nama_lengkap);
-                                $('#gaji_pokok1').val(response.gaji_pokok);
-                                $('#insentif1').val(response.insentif);
-                            }
-                        }
-                    });
-                } else {
-                    $('#nama').val('');
-                    $('#gaji_pokok1').val('');
-                    $('#insentif1').val('');
+    $(document).ready(function() {
+    // Fungsi untuk mengisi otomatis nama, gaji pokok, dan insentif saat memilih NIK
+    $(document).on('change', '.nik-select', function(){
+        var kode_nik = $(this).val();
+        var currentRow = $(this).closest('tr');
+
+        if(kode_nik !== '') {
+            $.ajax({
+                url:"{{ route('get-karyawan-detail') }}",
+                method:"GET",
+                data:{kode_nik:kode_nik},
+                success:function(response) {
+                    if(response) {
+                        currentRow.find('.nama-lengkap').val(response.nama_lengkap);
+                        currentRow.find('.gaji-pokok').val(response.gaji_pokok);
+                        currentRow.find('.insentif').val(response.insentif);
+                    }
                 }
             });
-              // Fungsi untuk menambahkan tabel baru
-              $('#tambah-data').click(function() {
-                var nikOptions = '';
-                @foreach ($karyawans as $karyawan)
-                    nikOptions += '<option value="{{ $karyawan->kode_nik }}">{{ $karyawan->kode_nik }}</option>';
-                @endforeach
+        } else {
+            currentRow.find('.nama-lengkap').val('');
+            currentRow.find('.gaji-pokok').val('');
+            currentRow.find('.insentif').val('');
+        }
+    });
 
-                var newRow = '<tr>' +
-                                '<td>' +
-                                    '<select class="form-control nik-select" name="nik[]">' +
-                                        '<option value="">Pilih NIK</option>' +
-                                        nikOptions +
-                                    '</select>' +
-                                '</td>' +
-                                '<td><input type="text" class="form-control nama-lengkap" name="nama_lengkap[]" placeholder="Nama Lengkap" readonly></td>' +
-                                '<td><input type="text" class="form-control jumlah-hadir" name="jumlah_hadir[]" placeholder="Jumlah Hadir"></td>' +
-                                '<td><input type="number" class="form-control gaji-pokok" name="gaji_pokok[]" style="width: 100px;" placeholder="Gaji Pokok" readonly></td>' +
-                                '<td><input type="number" class="form-control insentif" name="insentif[]" style="width: 100px;" placeholder="Insentif" readonly></td>' +
-                                '<td><input type="number" class="form-control asuransi" name="asuransi[]" style="width: 100px;" placeholder="Asuransi"></td>' +
-                                '<td><input type="number" class="form-control total-gaji" name="totalgaji[]" style="width: 100px;" placeholder="Total Gaji" readonly></td>' +
-                            '</tr>';
-                $('#barang-container').append(newRow);
-            });
-            $(document).on('change', '.nik-select, .jumlah-hadir, .asuransi', function(){
-                var currentRow = $(this).closest('tr');
-                hitungGajiPokok(currentRow);
-                console.log(hitungGajiPokok);
-            });
-            // Fungsi untuk mengisi otomatis nama, gaji pokok, dan insentif
-            $(document).on('change', '.nik-select', function(){
+    // Fungsi untuk menangani perubahan nilai pada elemen dengan class .nik-select, .jumlah-hadir, dan .asuransi
+    $(document).on('change', '.nik-select, .jumlah-hadir, .asuransi', function(){
+        var currentRow = $(this).closest('tr');
+        hitungGajiPokok(currentRow);
+    });
 
-                var kode_nik = $(this).val();
-                var currentRow = $(this).closest('tr');
+    // Fungsi untuk menambahkan tabel baru saat tombol "Tambah Data" diklik
+    $('#tambah-data').click(function() {
+        var nikOptions = '';
+        @foreach ($karyawans as $karyawan)
+            nikOptions += '<option value="{{ $karyawan->kode_nik }}">{{ $karyawan->kode_nik }}</option>';
+        @endforeach
 
-                if(kode_nik !== '') {
-                    $.ajax({
-                        url:"{{ route('get-karyawan-detail') }}",
-                        method:"GET",
-                        data:{kode_nik:kode_nik},
-                        success:function(response) {
-                            if(response) {
-                                currentRow.find('.nama-lengkap').val(response.nama_lengkap);
-                                currentRow.find('.gaji-pokok').val(response.gaji_pokok);
-                                currentRow.find('.insentif').val(response.insentif);
-                            }
-                        }
-                    });
-                } else {
-                    currentRow.find('.nama-lengkap').val('');
-                    currentRow.find('.gaji-pokok').val('');
-                    currentRow.find('.insentif').val('');
-                }
-            });
-            function hitungGajiPokok(row) {
-                var gajiPokok;
-                if (row.is(':first-child')) {
-                    gajiPokok = parseFloat($('#gaji_pokok1').val());
-                } else {
-                    gajiPokok = parseFloat(row.find('.gaji-pokok').val());
-                }
-                var asuransi = parseFloat(row.find('.asuransi').val());
-                var jumlahHadir = parseFloat(row.find('.jumlah-hadir').val());
-                var insentif = parseFloat(row.find('.insentif').val());
+        var newRow = '<tr>' +
+                        '<td>' +
+                            '<select class="form-control nik-select" name="kode_nik[]">' +
+                                '<option value="">Pilih NIK</option>' +
+                                nikOptions +
+                            '</select>' +
+                        '</td>' +
+                        '<td><input type="text" class="form-control nama-lengkap" name="nama_lengkap[]" placeholder="Nama Lengkap" readonly></td>' +
+                        '<td><input type="text" class="form-control jumlah-hadir" name="jumlah_hadir[]" placeholder="Jumlah Hadir"></td>' +
+                        '<td><input type="number" class="form-control gaji-pokok" name="gaji_pokok[]" style="width: 100px;" placeholder="Gaji Pokok" readonly></td>' +
+                        '<td><input type="number" class="form-control insentif" name="insentif[]" style="width: 100px;" placeholder="Insentif" readonly></td>' +
+                        '<td><input type="number" class="form-control asuransi" name="asuransi[]" style="width: 100px;" placeholder="Asuransi"></td>' +
+                        '<td><input type="number" class="form-control total-gaji" name="totalgaji[]" style="width: 100px;" placeholder="Total Gaji" readonly></td>' +
+                    '</tr>';
+        $('#barang-container').append(newRow);
 
-                // Hitung gaji pokok berdasarkan formula
-                var gajiPokokFormula = (gajiPokok - (gajiPokok * (asuransi / 100))) + (jumlahHadir * insentif);
-                row.find('.total-gaji').val(gajiPokokFormula.toFixed(2));
-            }
+        // Inisialisasi data pada baris pertama setelah menambahkan tabel baru
+        var firstRow = $('#barang-container tr:first-child');
+        hitungGajiPokok(firstRow);
+    });
 
-        });
+    // Fungsi untuk menghitung gaji pokok berdasarkan formula
+    function hitungGajiPokok(row) {
+        var gajiPokok;
+        if (row.is(':first-child')) {
+            gajiPokok = parseFloat($('#gaji_pokok1').val());
+        } else {
+            gajiPokok = parseFloat(row.find('.gaji-pokok').val());
+        }
+        var asuransi = parseFloat(row.find('.asuransi').val());
+        var jumlahHadir = parseFloat(row.find('.jumlah-hadir').val());
+        var insentif = parseFloat(row.find('.insentif').val());
+
+        var gajiPokokFormula = (gajiPokok - (gajiPokok * (asuransi / 100))) + (jumlahHadir * insentif);
+        row.find('.total-gaji').val(gajiPokokFormula.toFixed(2));
+    }
+
+    // Fungsi untuk inisialisasi data pada baris pertama saat modal dibuka
+    $('#modalCreate').on('show.bs.modal', function (e) {
+        var firstRow = $('#barang-container tr:first-child');
+        hitungGajiPokok(firstRow);
+    });
+});
+
     </script>
 @endpush
